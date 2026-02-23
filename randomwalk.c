@@ -73,9 +73,7 @@ typedef struct particle_t {
 /**
  * @brief Clear the contents of the terminal screen.
  */
-static void clear_screen() {
-	printf("\x1b[2J");
-}
+static void clear_screen();
 
 /**
  * @brief Generate a random unsigned 8-bit integer value.
@@ -83,9 +81,7 @@ static void clear_screen() {
  * @param[in] max The maximum possible value to generate.
  * @return A generated uint8_t value.
  */
-static uint8_t gen_uint8(const uint8_t min,	const uint8_t max) {
-	return (uint8_t)((rand() % max + 1) + min);
-}
+static uint8_t gen_uint8(const uint8_t min,	const uint8_t max);
 
 /**
  * @brief Generate a random coordinate.
@@ -94,6 +90,131 @@ static uint8_t gen_uint8(const uint8_t min,	const uint8_t max) {
  * @param[in] height The height of the plane.
  * @return The result of the coordinate generation.
  */
+static randomwalk_result_t gen_coord(
+	coordinate_t* const coord,
+	const uint8_t width,
+	const uint8_t height
+);
+
+/**
+ * @brief Generate a random 24-bit (RGB) color.
+ * @return A generated color.
+ */
+static color_t gen_color();
+
+/**
+ * @brief Generate a random cardinal direction.
+ * @return A generated direction.
+ */
+static direction_t gen_direction();
+
+/**
+ * @brief Initialize all particles.
+ * @param[out] particle The first created particle; subsequent particles follow.
+ * @param[in] num_particles The number of particles to create.
+ * @param[in] width The width of the plane.
+ * @param[in] height The height of the plane.
+ * @return The result of the initialization.
+ */
+static randomwalk_result_t init_particles(
+	particle_t** particle,
+	const uint8_t num_particles,
+	const uint8_t width,
+	const uint8_t height
+);
+
+/**
+ * @brief Walk all particles forward in their respective directions of movement.
+ * @param[in,out] particle The first particle to walk.
+ * @param[in] width The width of the plane
+ * @param[in] height The height of the plane
+ * @return The result of the particles taking a walk.
+ */
+static randomwalk_result_t walk_particles(
+	particle_t* const particle,
+	const uint8_t width,
+	const uint8_t height
+);
+
+/**
+ * @brief Steer all particles in a new random direction.
+ *
+ * Particles change direction probabilistically.
+ *
+ * @param[in,out] particle The first particle to steer.
+ * @return The result of steering the particles.
+ */
+static randomwalk_result_t steer_particles(particle_t* const particle);
+
+/**
+ * @brief Draw all particles.
+ * @param[in] particle The first particle to draw.
+ * @return The result of drawing the particles.
+ */
+static randomwalk_result_t draw_particles(particle_t* const particle);
+
+/**
+ * @brief Validate the live status of all particles
+ *
+ * If any particle has died, it is deallocated from memory, never to return.
+ *
+ * @param[in,out] particle The first particle to validate.
+ * @return The result of validating the particles.
+ */
+static randomwalk_result_t validate_particles(particle_t** particle);
+
+/**
+ * @brief Conduct a single step/frame of the random walk program.
+ *
+ * Computing a particle consists of drawing, steering, walking, and validating.
+ *
+ * @param[in,out] particle The first particle to compute.
+ * @param[in] width The width of the plane.
+ * @param[in] height The height of the plane.
+ * @return The result of computing all particles.
+ */
+static randomwalk_result_t compute_particles(
+	particle_t** particle,
+	const uint8_t width,
+	const uint8_t height
+);
+
+/**
+ * @brief Destroy all particles.
+ * @param[in,out] particle The first particle to destroy.
+ * @return The result of destroying the particles.
+ */
+static randomwalk_result_t destroy_particles(particle_t** particle);
+
+/**
+ * @brief Temporarily halt execution; sleep.
+ */
+static void delay();
+
+/**
+ * @brief Execute Random Walk.
+ * @param[in] args A structure of arguments to configure random walk with.
+ * @return An enum denoting the random walk result code.
+ */
+static randomwalk_result_t randomwalk(randomwalk_args_t args);
+
+int main(void) {
+	randomwalk_args_t args;
+	args.width = 200;
+	args.height = 200;
+	args.num_particles = 10;
+	(void)randomwalk(args);
+	return 0;
+}
+
+static void clear_screen() {
+	printf("\x1b[2J");
+}
+
+static uint8_t gen_uint8(const uint8_t min,	const uint8_t max) {
+	return (uint8_t)((rand() % max + 1) + min);
+}
+
 static randomwalk_result_t gen_coord(
 	coordinate_t* const coord,
 	const uint8_t width,
@@ -108,10 +229,6 @@ static randomwalk_result_t gen_coord(
 	return RANDOMWALK_OK;
 }
 
-/**
- * @brief Generate a random 24-bit (RGB) color.
- * @return A generated color.
- */
 static color_t gen_color() {
 	return (color_t){
 		.r = gen_uint8(0, UINT8_MAX),
@@ -120,22 +237,10 @@ static color_t gen_color() {
 	};
 }
 
-/**
- * @brief Generate a random cardinal direction.
- * @return A generated direction.
- */
 static direction_t gen_direction() {
 	return (direction_t)gen_uint8(0, DIRECTION_COUNT - 1);
 }
 
-/**
- * @brief Initialize all particles.
- * @param[out] particle The first created particle; subsequent particles follow.
- * @param[in] num_particles The number of particles to create.
- * @param[in] width The width of the plane.
- * @param[in] height The height of the plane.
- * @return The result of the initialization.
- */
 static randomwalk_result_t init_particles(
 	particle_t** particle,
 	const uint8_t num_particles,
@@ -159,13 +264,6 @@ static randomwalk_result_t init_particles(
 	return RANDOMWALK_OK;
 }
 
-/**
- * @brief Walk all particles forward in their respective directions of movement.
- * @param[in,out] particle The first particle to walk.
- * @param[in] width The width of the plane
- * @param[in] height The height of the plane
- * @return The result of the particles taking a walk.
- */
 static randomwalk_result_t walk_particles(
 	particle_t* const particle,
 	const uint8_t width,
@@ -191,14 +289,6 @@ static randomwalk_result_t walk_particles(
 	return RANDOMWALK_OK;
 }
 
-/**
- * @brief Steer all particles in a new random direction.
- *
- * Particles change direction probabilistically.
- *
- * @param[in,out] particle The first particle to steer.
- * @return The result of steering the particles.
- */
 static randomwalk_result_t steer_particles(particle_t* const particle) {
 	if (!particle)
 		return RANDOMWALK_FAIL;
@@ -213,11 +303,6 @@ static randomwalk_result_t steer_particles(particle_t* const particle) {
 	return RANDOMWALK_OK;
 }
 
-/**
- * @brief Draw all particles.
- * @param[in] particle The first particle to draw.
- * @return The result of drawing the particles.
- */
 static randomwalk_result_t draw_particles(particle_t* const particle) {
 	if (!particle)
 		return RANDOMWALK_FAIL;
@@ -235,14 +320,6 @@ static randomwalk_result_t draw_particles(particle_t* const particle) {
 	return RANDOMWALK_OK;
 }
 
-/**
- * @brief Validate the live status of all particles
- *
- * If any particle has died, it is deallocated from memory, never to return.
- *
- * @param[in,out] particle The first particle to validate.
- * @return The result of validating the particles.
- */
 static randomwalk_result_t validate_particles(particle_t** particle) {
 	if (!*particle)
 		return RANDOMWALK_FAIL;
@@ -268,16 +345,6 @@ static randomwalk_result_t validate_particles(particle_t** particle) {
 	return *particle ? RANDOMWALK_OK : RANDOMWALK_DONE;
 }
 
-/**
- * @brief Conduct a single step/frame of the random walk program.
- *
- * Computing a particle consists of drawing, steering, walking, and validating.
- *
- * @param[in,out] particle The first particle to compute.
- * @param[in] width The width of the plane.
- * @param[in] height The height of the plane.
- * @return The result of computing all particles.
- */
 static randomwalk_result_t compute_particles(
 	particle_t** particle,
 	const uint8_t width,
@@ -295,11 +362,6 @@ static randomwalk_result_t compute_particles(
 	return validate_particles(particle);
 }
 
-/**
- * @brief Destroy all particles.
- * @param[in,out] particle The first particle to destroy.
- * @return The result of destroying the particles.
- */
 static randomwalk_result_t destroy_particles(particle_t** particle) {
 	if (!particle)
 		return RANDOMWALK_FAIL;
@@ -310,9 +372,6 @@ static randomwalk_result_t destroy_particles(particle_t** particle) {
 	return result;
 }
 
-/**
- * @brief Temporarily halt execution; sleep.
- */
 static void delay() {
 	const uint8_t DELAY_MILLIS = 1;
 	const uint32_t NANOS_PER_MILLI = 1000000;
@@ -320,11 +379,6 @@ static void delay() {
 	nanosleep(&req, NULL);
 }
 
-/**
- * @brief Execute Random Walk.
- * @param[in] args A structure of arguments to configure random walk with.
- * @return An enum denoting the random walk result code.
- */
 static randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	srand(time(NULL));
 	particle_t* particle = NULL;
@@ -337,13 +391,4 @@ static randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	if (result != RANDOMWALK_DONE)
 		result = destroy_particles(&particle);
 	return result;
-}
-
-int main(void) {
-	randomwalk_args_t args;
-	args.width = 200;
-	args.height = 200;
-	args.num_particles = 10;
-	(void)randomwalk(args);
-	return 0;
 }
