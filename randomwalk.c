@@ -4,29 +4,11 @@
  * @author Justin Thoreson
  */
 
+#include "randomwalk.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <time.h>
-
-/**
- * @brief Arguments to be given to the random walk program.
- */
-typedef struct {
-	uint8_t width, height;
-	uint8_t num_particles;
-} randomwalk_args_t;
-
-// TODO: create additional specific result codes
-/**
- * @brief Result codes returned by the random walk program.
- */
-typedef enum {
-	RANDOMWALK_OK = 0,
-	RANDOMWALK_DONE,
-	RANDOMWALK_FAIL
-} randomwalk_result_t;
 
 /**
  * @brief A coordinate within a plane (2-dimensional).
@@ -191,20 +173,18 @@ static randomwalk_result_t destroy_particles(particle_t** particle);
  */
 static void delay();
 
-/**
- * @brief Execute Random Walk.
- * @param[in] args A structure of arguments to configure random walk with.
- * @return An enum denoting the random walk result code.
- */
-static randomwalk_result_t randomwalk(randomwalk_args_t args);
-
-int main(void) {
-	randomwalk_args_t args;
-	args.width = 200;
-	args.height = 200;
-	args.num_particles = 10;
-	(void)randomwalk(args);
-	return 0;
+randomwalk_result_t randomwalk(randomwalk_args_t args) {
+	srand(time(NULL));
+	particle_t* particle = NULL;
+	randomwalk_result_t result = init_particles(&particle, args.num_particles, args.width, args.height);
+	clear_screen();
+	while (result == RANDOMWALK_OK) {
+		result = compute_particles(&particle, args.width, args.height);
+		delay();
+	}
+	if (result != RANDOMWALK_DONE)
+		result = destroy_particles(&particle);
+	return result;
 }
 
 static void clear_screen() {
@@ -379,16 +359,3 @@ static void delay() {
 	nanosleep(&req, NULL);
 }
 
-static randomwalk_result_t randomwalk(randomwalk_args_t args) {
-	srand(time(NULL));
-	particle_t* particle = NULL;
-	randomwalk_result_t result = init_particles(&particle, args.num_particles, args.width, args.height);
-	clear_screen();
-	while (result == RANDOMWALK_OK) {
-		result = compute_particles(&particle, args.width, args.height);
-		delay();
-	}
-	if (result != RANDOMWALK_DONE)
-		result = destroy_particles(&particle);
-	return result;
-}

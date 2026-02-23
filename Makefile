@@ -7,10 +7,11 @@
 C = gcc
 C_FLAGS = -std=gnu11 -Wall -Werror -pedantic -ggdb -O0
 C_EXT = c
+DRIVER = main
 PROGRAM = randomwalk
 
-$(PROGRAM): $(PROGRAM).$(C_EXT)
-	$(C) $(C_FLAGS) $< -o $@
+$(PROGRAM): $(DRIVER).$(C_EXT) $(PROGRAM).$(C_EXT)
+	$(C) $(C_FLAGS) $^ -o $@
 
 .PHONY: clean
 
