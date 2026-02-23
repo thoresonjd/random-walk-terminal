@@ -36,13 +36,19 @@ static bool parse_args(
 	char** const argv
 );
 
+/**
+ * @brief Print the result of the random walk program.
+ * @param[in] result The random walk result to print.
+ */
+static void print_randomwalk_result(const randomwalk_result_t result);
+
 int main(int argc, char** argv) {
 	randomwalk_args_t args = { 0 };
 	if (!parse_args(&args, &argc, argv)) {
 		puts(USAGE);
 		return 1;
 	}
-	(void)randomwalk(args);
+	print_randomwalk_result(randomwalk(args));
 	return 0;
 }
 
@@ -71,3 +77,20 @@ static bool parse_args(
 		return false;
 	return true;
 }
+
+static void print_randomwalk_result(const randomwalk_result_t result) {
+	switch(result) {
+		case RANDOMWALK_OK:
+			printf("RANDOMWALK_OK (%d)\n", RANDOMWALK_OK);
+			break;
+		case RANDOMWALK_DONE:
+			printf("RANDOMWALK_DONE (%d)\n", RANDOMWALK_DONE);
+			break;
+		case RANDOMWALK_FAIL:
+			printf("RANDOMWALK_FAIL (%d)\n", RANDOMWALK_FAIL);
+			break;
+		default:
+			puts("Unknown result");
+	};
+}
+
