@@ -13,7 +13,8 @@
  * @brief Information on how to run the random walk program.
  */
 static const char* USAGE =
-	"Usage: ./randomwalk <plane_width> <plane_height> <particle_count>";
+	"Usage: ./randomwalk <plane_width> <plane_height>"
+	" <particle_count> [delay_milliseconds]";
 
 /**
  * @brief Parse an 8-bit unsigned integer.
@@ -24,6 +25,14 @@ static const char* USAGE =
 static bool parse_uint8(const char* const arg, uint8_t* const value);
 
 /**
+ * @brief Parse an 16-bit unsigned integer.
+ * @param[in] arg The string argument to parse.
+ * @param[out] value The parsed integer.
+ * @return True if the integer is parsed successfully, false otherwise.
+ */
+static bool parse_uint16(const char* const arg, uint16_t* const value);
+
+/**
  * @brief Parse command line arguments.
  * @param[out] args The parsed snake game arguments.
  * @param[in] argc The number of command line arguments.
@@ -32,7 +41,7 @@ static bool parse_uint8(const char* const arg, uint8_t* const value);
  */
 static bool parse_args(
 	randomwalk_args_t* const args,
-	const int* const argc,
+	const int argc,
 	char** const argv
 );
 
@@ -44,7 +53,7 @@ static void print_randomwalk_result(const randomwalk_result_t result);
 
 int main(int argc, char** argv) {
 	randomwalk_args_t args = { 0 };
-	if (!parse_args(&args, &argc, argv)) {
+	if (!parse_args(&args, argc, argv)) {
 		puts(USAGE);
 		return 1;
 	}
@@ -64,17 +73,31 @@ static bool parse_uint8(const char* const arg, uint8_t* const value) {
 	return true;
 }
 
+static bool parse_uint16(const char* const arg, uint16_t* const value) {
+	if (!arg || !value)
+		return false;
+	int64_t temp;
+	if (!sscanf(arg, "%ld", &temp))
+		return false;
+	if (temp < 0 || temp > UINT16_MAX)
+		return false;
+	*value = (uint16_t)temp;
+	return true;
+}
+
 static bool parse_args(
 	randomwalk_args_t* const args,
-	const int* const argc,
+	const int argc,
 	char** const argv
 ) {
-	if (*argc != 4)
+	if (argc < 4)
 		return false;
 	if (!parse_uint8(argv[1], &args->width) ||
 		!parse_uint8(argv[2], &args->height) ||
 		!parse_uint8(argv[3], &args->num_particles))
 		return false;
+	if (argc == 5)
+		(void)parse_uint16(argv[4], &args->delay_ms);
 	return true;
 }
 

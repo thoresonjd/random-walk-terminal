@@ -16,6 +16,7 @@
 typedef struct {
 	uint8_t width, height;
 	uint8_t num_particles;
+	uint16_t delay_ms;
 } randomwalk_args_t;
 
 // TODO: create additional specific result codes

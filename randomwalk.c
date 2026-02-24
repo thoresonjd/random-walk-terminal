@@ -53,6 +53,21 @@ typedef struct particle_t {
 } particle_t;
 
 /**
+ * @brief The default frame delay in milliseconds.
+ */
+const uint8_t DEFAULT_DELAY_MILLIS = 25;
+
+/**
+ * @brief The number of milliseconds per second.
+ */
+const uint16_t MILLIS_PER_SECOND = 1000;
+
+/**
+ * @brief The number of nanoseconds per millisecond.
+ */
+const uint32_t NANOS_PER_MILLI = 1000000;
+
+/**
  * @brief Clear the contents of the terminal screen.
  */
 static void clear_screen();
@@ -169,9 +184,13 @@ static randomwalk_result_t compute_particles(
 static randomwalk_result_t destroy_particles(particle_t** particle);
 
 /**
- * @brief Temporarily halt execution; sleep.
+ * @brief Temporarily halt execution for a provided number of milliseconds.
+ *
+ * If the provided delay is 0, use the default delay.
+ *
+ * @param[in] delay The number of milliseconds to sleep for.
  */
-static void delay();
+static void millisleep(const uint16_t delay);
 
 randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	srand(time(NULL));
@@ -180,7 +199,7 @@ randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	clear_screen();
 	while (result == RANDOMWALK_OK) {
 		result = compute_particles(&particle, args.width, args.height);
-		delay();
+		millisleep(args.delay_ms);
 	}
 	if (result != RANDOMWALK_DONE)
 		result = destroy_particles(&particle);
@@ -352,10 +371,12 @@ static randomwalk_result_t destroy_particles(particle_t** particle) {
 	return result;
 }
 
-static void delay() {
-	const uint8_t DELAY_MILLIS = 1;
-	const uint32_t NANOS_PER_MILLI = 1000000;
-	struct timespec req = { 0, DELAY_MILLIS * NANOS_PER_MILLI };
+static void millisleep(const uint16_t delay) {
+	const uint8_t seconds = (delay ? delay : DEFAULT_DELAY_MILLIS) /
+		MILLIS_PER_SECOND;
+	const uint32_t nanoseconds = NANOS_PER_MILLI *
+		(delay ? delay % MILLIS_PER_SECOND : DEFAULT_DELAY_MILLIS);
+	struct timespec req = { seconds, nanoseconds };
 	nanosleep(&req, NULL);
 }
 
