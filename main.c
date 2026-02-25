@@ -7,14 +7,28 @@
 #include "randomwalk.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 
 /**
  * @brief Information on how to run the random walk program.
  */
 static const char* USAGE =
-	"Usage: ./randomwalk <plane_width> <plane_height> <particle_count>"
-	" <probability_direction_change> [delay_milliseconds]";
+	"Usage: ./randomwalk [arguments]\n"
+	"Parameters (R = required | O = optional):\n"
+	"[R] --width=<uint8>           width of the plane\n"
+	"[R] --height=<uint8>          height of the plane\n"
+	"[R] --pcount=<uint8>          initial particle count\n"
+	"[O] --prob-dir-change={0-100} probability a particle changes direction\n"
+	"[O] --delay=<uint16>          delay between frames in milliseconds";
+
+/**
+ * @brief Move a string pointer forward passed a specified prefix.
+ * @param[in,out] string The string in which the prefix is skipped.
+ * @param[in] prefix The prefix to skip.
+ * @return True if skipping succeeded, false otherwise.
+ */
+static bool skip_prefix(char** string, const char* const prefix);
 
 /**
  * @brief Parse an 8-bit unsigned integer.
@@ -33,8 +47,16 @@ static bool parse_uint8(const char* const arg, uint8_t* const value);
 static bool parse_uint16(const char* const arg, uint16_t* const value);
 
 /**
+ * @brief Parse a single command line argument.
+ * @param[out] args The parsed random walk argument.
+ * @param[in] arg The argument to parse.
+ * @return True if parsing succeeded, false otherwise.
+ */
+static bool parse_arg(randomwalk_args_t* const args, char* arg);
+
+/**
  * @brief Parse command line arguments.
- * @param[out] args The parsed snake game arguments.
+ * @param[out] args The parsed random walk arguments.
  * @param[in] argc The number of command line arguments.
  * @param[in] argv The command line arguments to parse.
  * @return True if the arguments are parsed successfully, false otherwise.
@@ -44,6 +66,16 @@ static bool parse_args(
 	const int argc,
 	char** const argv
 );
+
+/**
+ * @brief Verify that all required arguments have been provided.
+ *
+ * Required arguments are those that must have non-zero values.
+ *
+ * @param[in] args The random walk arguments.
+ * @return True if all required arguments are set, false otherwise.
+ */
+static bool validate_required_args(const randomwalk_args_t* const args);
 
 /**
  * @brief Print the result of the random walk program.
@@ -59,6 +91,14 @@ int main(int argc, char** argv) {
 	}
 	print_randomwalk_result(randomwalk(args));
 	return 0;
+}
+
+static bool skip_prefix(char** string, const char* const prefix) {
+	const size_t prefix_size = strlen(prefix);
+	if (strncmp(*string, prefix, prefix_size))
+		return false;
+	*string += prefix_size;
+	return true;
 }
 
 static bool parse_uint8(const char* const arg, uint8_t* const value) {
@@ -85,21 +125,44 @@ static bool parse_uint16(const char* const arg, uint16_t* const value) {
 	return true;
 }
 
+static bool parse_arg(randomwalk_args_t* const args, char* arg) {
+	if (!args->width && skip_prefix(&arg, "--width="))
+		return parse_uint8(arg, &args->width);
+	if (!args->height && skip_prefix(&arg, "--height="))
+		return parse_uint8(arg, &args->height);
+	if (!args->particle_count && skip_prefix(&arg, "--pcount="))
+		return parse_uint8(arg, &args->particle_count);
+	if (!args->prob_dir_change && skip_prefix(&arg, "--prob-dir-change="))
+		return parse_uint8(arg, &args->prob_dir_change);
+	if (!args->delay_ms && skip_prefix(&arg, "--delay="))
+		return parse_uint16(arg, &args->delay_ms);
+	return true;
+}
+
 static bool parse_args(
 	randomwalk_args_t* const args,
 	const int argc,
 	char** const argv
 ) {
-	if (argc < 5)
+	if (argc < 4) {
+		puts("Insufficient number of arguments");
 		return false;
-	if (!parse_uint8(argv[1], &args->width) ||
-		!parse_uint8(argv[2], &args->height) ||
-		!parse_uint8(argv[3], &args->num_particles) ||
-		!parse_uint8(argv[4], &args->prob_dir_change))
-		return false;
-	if (argc == 6)
-		(void)parse_uint16(argv[5], &args->delay_ms);
-	return true;
+	}
+	for (int i = 1; i < argc; i++) {
+		char* const arg = argv[i];
+		if (!parse_arg(args, arg)) {
+			printf("Failed to parse: %s\n", arg);
+			return false;
+		}
+	}
+	if (!validate_required_args(args)) {
+		puts("Not all required arguments provided");
+	}
+	return validate_required_args(args);
+}
+
+static bool validate_required_args(const randomwalk_args_t* const args) {
+	return args->width && args->height && args->particle_count;
 }
 
 static void print_randomwalk_result(const randomwalk_result_t result) {

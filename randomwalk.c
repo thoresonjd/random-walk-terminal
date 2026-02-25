@@ -53,6 +53,11 @@ typedef struct particle_t {
 } particle_t;
 
 /**
+ * @brief The default probability of particle direction change.
+ */
+const uint8_t DEFAULT_PROB_DIR_CHANGE = 50;
+
+/**
  * @brief The default frame delay in milliseconds.
  */
 const uint8_t DEFAULT_DELAY_MILLIS = 25;
@@ -108,14 +113,14 @@ static direction_t gen_direction();
 /**
  * @brief Initialize all particles.
  * @param[out] particle The first created particle; subsequent particles follow.
- * @param[in] num_particles The number of particles to create.
+ * @param[in] particle_count The number of particles to create.
  * @param[in] width The width of the plane.
  * @param[in] height The height of the plane.
  * @return The result of the initialization.
  */
 static randomwalk_result_t init_particles(
 	particle_t** particle,
-	const uint8_t num_particles,
+	const uint8_t particle_count,
 	const uint8_t width,
 	const uint8_t height
 );
@@ -203,7 +208,7 @@ randomwalk_result_t randomwalk(randomwalk_args_t args) {
 		return RANDOMWALK_FAIL;
 	srand(time(NULL));
 	particle_t* particle = NULL;
-	randomwalk_result_t result = init_particles(&particle, args.num_particles, args.width, args.height);
+	randomwalk_result_t result = init_particles(&particle, args.particle_count, args.width, args.height);
 	clear_screen();
 	while (result == RANDOMWALK_OK) {
 		result = compute_particles(&particle, args.width, args.height, args.prob_dir_change);
@@ -250,14 +255,14 @@ static direction_t gen_direction() {
 
 static randomwalk_result_t init_particles(
 	particle_t** particle,
-	const uint8_t num_particles,
+	const uint8_t particle_count,
 	const uint8_t width,
 	const uint8_t height
 ) {
 	if (!particle || *particle)
 		return RANDOMWALK_FAIL;
 	particle_t** current = particle;
-	for (uint8_t i = 0; i < num_particles; i++) {
+	for (uint8_t i = 0; i < particle_count; i++) {
 		*current = (particle_t*)malloc(sizeof(particle_t));
 		randomwalk_result_t result = gen_coord(&(*current)->coord, width, height);
 		if (result != RANDOMWALK_OK)
@@ -304,7 +309,8 @@ static randomwalk_result_t steer_particles(
 		return RANDOMWALK_FAIL;
 	particle_t* current = particle;
 	while (current) {
-		bool change_dir = gen_uint8(1, 100) <= prob_dir_change;
+		bool change_dir = gen_uint8(1, 100) <=
+			(prob_dir_change ? prob_dir_change : DEFAULT_PROB_DIR_CHANGE);
 		if (change_dir)
 			current->direction = gen_direction();
 		current = current->next;

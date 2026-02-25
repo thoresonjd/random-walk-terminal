@@ -15,7 +15,7 @@
  */
 typedef struct {
 	uint8_t width, height;
-	uint8_t num_particles;
+	uint8_t particle_count;
 	uint8_t prob_dir_change;
 	uint16_t delay_ms;
 } randomwalk_args_t;
