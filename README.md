@@ -43,3 +43,6 @@ where the arguments take the form of `--<parameter>=<value>`.
 | `prob-dir-change` | Probability of particle direction change | No       | `50`%   | `uint8_t`  |
 | `delay`           | Delay between frames in milliseconds     | No       | `25`ms  | `uint16_t` |
 
+## See also
+
+[Friend](https://github.com/boingboomtschak)'s random walk implementation: https://www.devon.engineering/playground/#random-walk.
