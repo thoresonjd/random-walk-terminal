@@ -16,3 +16,26 @@ Each particle is assigned a random 24-bit color.
 
 Particles are allocated individually via a singly-linked-list. When a particle
 dies, it is removed from the linked list and its memory is deallocated.
+
+## Usage
+
+### Build
+
+To build the random walk program, run `make` or `make randomwalk`.
+
+### Execute
+
+To execute the random walk program, run:
+```
+./randomwalk [arguments]
+```
+where the arguments take the form of `--<parameter>=<value>`.
+
+| Parameter         | Description                              | Required | Default | Type       |
+|-------------------|------------------------------------------|----------|---------|------------|
+| `width`           | Width of plane                           | Yes      | NA      | `uint8_t`  |
+| `height`          | Height of plane                          | Yes      | NA      | `uint8_t`  |
+| `pcount`          | Initial particle count                   | Yes      | NA      | `uint8_t`  |
+| `prob-dir-change` | Probability of particle direction change | No       | `50`%   | `uint8_t`  |
+| `delay`           | Delay between frames in milliseconds     | No       | `25`ms  | `uint16_t` |
+
