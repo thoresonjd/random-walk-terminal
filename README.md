@@ -2,6 +2,10 @@
 
 A random walk implementation conducted within the terminal.
 
+## Demo
+
+https://github.com/user-attachments/assets/8f15c1da-1afc-45ad-872b-3664dd1879bb
+
 ## How it works
 
 Particles are placed into a 2-dimensional plane of a fixed width and height.
