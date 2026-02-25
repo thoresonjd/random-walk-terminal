@@ -13,8 +13,8 @@
  * @brief Information on how to run the random walk program.
  */
 static const char* USAGE =
-	"Usage: ./randomwalk <plane_width> <plane_height>"
-	" <particle_count> [delay_milliseconds]";
+	"Usage: ./randomwalk <plane_width> <plane_height> <particle_count>"
+	" <probability_direction_change> [delay_milliseconds]";
 
 /**
  * @brief Parse an 8-bit unsigned integer.
@@ -90,14 +90,15 @@ static bool parse_args(
 	const int argc,
 	char** const argv
 ) {
-	if (argc < 4)
+	if (argc < 5)
 		return false;
 	if (!parse_uint8(argv[1], &args->width) ||
 		!parse_uint8(argv[2], &args->height) ||
-		!parse_uint8(argv[3], &args->num_particles))
+		!parse_uint8(argv[3], &args->num_particles) ||
+		!parse_uint8(argv[4], &args->prob_dir_change))
 		return false;
-	if (argc == 5)
-		(void)parse_uint16(argv[4], &args->delay_ms);
+	if (argc == 6)
+		(void)parse_uint16(argv[5], &args->delay_ms);
 	return true;
 }
 

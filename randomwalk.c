@@ -139,9 +139,13 @@ static randomwalk_result_t walk_particles(
  * Particles change direction probabilistically.
  *
  * @param[in,out] particle The first particle to steer.
+ * @param[in] prob_dir_change The probability of a particle changing direction.
  * @return The result of steering the particles.
  */
-static randomwalk_result_t steer_particles(particle_t* const particle);
+static randomwalk_result_t steer_particles(
+	particle_t* const particle,
+	const uint8_t prob_dir_change
+);
 
 /**
  * @brief Draw all particles.
@@ -168,12 +172,14 @@ static randomwalk_result_t validate_particles(particle_t** particle);
  * @param[in,out] particle The first particle to compute.
  * @param[in] width The width of the plane.
  * @param[in] height The height of the plane.
+ * @param[in] prob_dir_change The probability of a particle changing direction.
  * @return The result of computing all particles.
  */
 static randomwalk_result_t compute_particles(
 	particle_t** particle,
 	const uint8_t width,
-	const uint8_t height
+	const uint8_t height,
+	const uint8_t prob_dir_change
 );
 
 /**
@@ -193,12 +199,14 @@ static randomwalk_result_t destroy_particles(particle_t** particle);
 static void millisleep(const uint16_t delay);
 
 randomwalk_result_t randomwalk(randomwalk_args_t args) {
+	if (args.prob_dir_change > 100)
+		return RANDOMWALK_FAIL;
 	srand(time(NULL));
 	particle_t* particle = NULL;
 	randomwalk_result_t result = init_particles(&particle, args.num_particles, args.width, args.height);
 	clear_screen();
 	while (result == RANDOMWALK_OK) {
-		result = compute_particles(&particle, args.width, args.height);
+		result = compute_particles(&particle, args.width, args.height, args.prob_dir_change);
 		millisleep(args.delay_ms);
 	}
 	if (result != RANDOMWALK_DONE)
@@ -288,13 +296,15 @@ static randomwalk_result_t walk_particles(
 	return RANDOMWALK_OK;
 }
 
-static randomwalk_result_t steer_particles(particle_t* const particle) {
+static randomwalk_result_t steer_particles(
+	particle_t* const particle,
+	const uint8_t prob_dir_change
+) {
 	if (!particle)
 		return RANDOMWALK_FAIL;
-	const uint8_t prob_dir_change = 20;
 	particle_t* current = particle;
 	while (current) {
-		bool change_dir = gen_uint8(1, 100) < prob_dir_change;
+		bool change_dir = gen_uint8(1, 100) <= prob_dir_change;
 		if (change_dir)
 			current->direction = gen_direction();
 		current = current->next;
@@ -347,12 +357,13 @@ static randomwalk_result_t validate_particles(particle_t** particle) {
 static randomwalk_result_t compute_particles(
 	particle_t** particle,
 	const uint8_t width,
-	const uint8_t height
+	const uint8_t height,
+	const uint8_t prob_dir_change
 ) {
 	randomwalk_result_t result = draw_particles(*particle);
 	if (result != RANDOMWALK_OK)
 		return result;
-	result = steer_particles(*particle);
+	result = steer_particles(*particle, prob_dir_change);
 	if (result != RANDOMWALK_OK)
 		return result;
 	result = walk_particles(*particle, width, height);
