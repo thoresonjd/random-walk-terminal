@@ -219,7 +219,7 @@ static void clear_screen() {
 }
 
 static uint8_t gen_uint8(const uint8_t min,	const uint8_t max) {
-	return (uint8_t)((rand() % max + 1) + min);
+	return (uint8_t)(rand() % (max + 1) + min);
 }
 
 static randomwalk_result_t gen_coord(
