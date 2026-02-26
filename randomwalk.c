@@ -381,11 +381,13 @@ static randomwalk_result_t compute_particles(
 static randomwalk_result_t destroy_particles(particle_t** particle) {
 	if (!particle)
 		return RANDOMWALK_FAIL;
-	if (!*particle)
-		return RANDOMWALK_OK;
-	randomwalk_result_t result = destroy_particles(&(*particle)->next);
-	free(*particle);
-	return result;
+	particle_t* current = *particle;
+	while (current) {
+		*particle = current->next;
+		free(current);
+		current = *particle;
+	}
+	return RANDOMWALK_OK;
 }
 
 static void millisleep(const uint16_t delay) {
