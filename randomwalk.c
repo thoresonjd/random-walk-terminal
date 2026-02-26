@@ -73,6 +73,13 @@ const uint16_t MILLIS_PER_SECOND = 1000;
 const uint32_t NANOS_PER_MILLI = 1000000;
 
 /**
+ * @brief Validate random walk arguments.
+ * @param[in] args The specified random walk arguments.
+ * @return The result of validating the random walk arguments.
+ */
+static randomwalk_result_t validate_args(const randomwalk_args_t args);
+
+/**
  * @brief Clear the contents of the terminal screen.
  */
 static void clear_screen();
@@ -204,11 +211,12 @@ static randomwalk_result_t destroy_particles(particle_t** particle);
 static void millisleep(const uint16_t delay);
 
 randomwalk_result_t randomwalk(randomwalk_args_t args) {
-	if (args.prob_dir_change > 100)
-		return RANDOMWALK_FAIL;
+	randomwalk_result_t result = validate_args(args);
+	if (result != RANDOMWALK_OK)
+		return result;
 	srand(time(NULL));
 	particle_t* particle = NULL;
-	randomwalk_result_t result = init_particles(&particle, args.particle_count, args.width, args.height);
+	result = init_particles(&particle, args.particle_count, args.width, args.height);
 	clear_screen();
 	while (result == RANDOMWALK_OK) {
 		result = compute_particles(&particle, args.width, args.height, args.prob_dir_change);
@@ -217,6 +225,16 @@ randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	if (result != RANDOMWALK_DONE)
 		result = destroy_particles(&particle);
 	return result;
+}
+
+static randomwalk_result_t validate_args(const randomwalk_args_t args) {
+	if (!args.width || !args.height)
+		return RANDOMWALK_BADDIM;
+	if (!args.particle_count)
+		return RANDOMWALK_BADCOUNT;
+	if (args.prob_dir_change > 100)
+		return RANDOMWALK_BADPROB;
+	return RANDOMWALK_OK;
 }
 
 static void clear_screen() {

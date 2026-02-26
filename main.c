@@ -68,16 +68,6 @@ static bool parse_args(
 );
 
 /**
- * @brief Verify that all required arguments have been provided.
- *
- * Required arguments are those that must have non-zero values.
- *
- * @param[in] args The random walk arguments.
- * @return True if all required arguments are set, false otherwise.
- */
-static bool validate_required_args(const randomwalk_args_t* const args);
-
-/**
  * @brief Print the result of the random walk program.
  * @param[in] result The random walk result to print.
  */
@@ -155,14 +145,7 @@ static bool parse_args(
 			return false;
 		}
 	}
-	if (!validate_required_args(args)) {
-		puts("Not all required arguments provided");
-	}
-	return validate_required_args(args);
-}
-
-static bool validate_required_args(const randomwalk_args_t* const args) {
-	return args->width && args->height && args->particle_count;
+	return true;
 }
 
 static void print_randomwalk_result(const randomwalk_result_t result) {
@@ -173,11 +156,21 @@ static void print_randomwalk_result(const randomwalk_result_t result) {
 		case RANDOMWALK_DONE:
 			printf("RANDOMWALK_DONE (%d)\n", RANDOMWALK_DONE);
 			break;
+		case RANDOMWALK_BADDIM:
+			printf("RANDOMWALK_BADDIM (%d)\n", RANDOMWALK_BADDIM);
+			break;
+		case RANDOMWALK_BADCOUNT:
+			printf("RANDOMWALK_BADCOUNT (%d)\n", RANDOMWALK_BADCOUNT);
+			break;
+		case RANDOMWALK_BADPROB:
+			printf("RANDOMWALK_BADPROB (%d)\n", RANDOMWALK_BADPROB);
+			break;
 		case RANDOMWALK_FAIL:
 			printf("RANDOMWALK_FAIL (%d)\n", RANDOMWALK_FAIL);
 			break;
+		case RANDOMWALK_UNKNOWN:
 		default:
-			puts("Unknown result");
+			printf("RANDOMWALK_UNKNOWN (%d)\n", RANDOMWALK_UNKNOWN);
 	};
 }
 

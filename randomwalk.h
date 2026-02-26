@@ -20,14 +20,17 @@ typedef struct {
 	uint16_t delay_ms;
 } randomwalk_args_t;
 
-// TODO: create additional specific result codes
 /**
  * @brief Result codes returned by the random walk program.
  */
 typedef enum {
-	RANDOMWALK_OK = 0,
-	RANDOMWALK_DONE,
-	RANDOMWALK_FAIL
+	RANDOMWALK_OK = 0,   // Operation succeeded
+	RANDOMWALK_DONE,     // Program terminated successfully
+	RANDOMWALK_BADDIM,   // Bad width or height
+	RANDOMWALK_BADCOUNT, // Bad particle count
+	RANDOMWALK_BADPROB,  // Bad direction change probability
+	RANDOMWALK_FAIL,     // Operation failed
+	RANDOMWALK_UNKNOWN   // Result unknown
 } randomwalk_result_t;
 
 /**
