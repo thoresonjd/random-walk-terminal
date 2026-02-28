@@ -118,6 +118,17 @@ static color_t gen_color();
 static direction_t gen_direction();
 
 /**
+ * @brief Generate a random cardinal direction except one that is specified.
+ * @param[out] direction A generated direction.
+ * @param[in] exclude The direction to exclude from random generation.
+ * @return The result of generating a direction.
+ */
+static randomwalk_result_t gen_direction_except(
+	direction_t* direction,
+	const direction_t exclude
+);
+
+/**
  * @brief Initialize all particles.
  * @param[out] particle The first created particle; subsequent particles follow.
  * @param[in] particle_count The number of particles to create.
@@ -271,6 +282,24 @@ static direction_t gen_direction() {
 	return (direction_t)gen_uint8(0, DIRECTION_COUNT - 1);
 }
 
+static randomwalk_result_t gen_direction_except(
+	direction_t* direction,
+	const direction_t exclude
+) {
+	if (exclude >= DIRECTION_COUNT)
+		return RANDOMWALK_FAIL;
+	direction_t directions[DIRECTION_COUNT - 1];
+	direction_t current = (direction_t)(0);
+	uint8_t i = 0;
+	while (i < DIRECTION_COUNT - 1 && current < DIRECTION_COUNT) {
+		if (current != exclude)
+			directions[i++] = (direction_t)current;
+		current++;
+	}
+	*direction = directions[gen_uint8(0, DIRECTION_COUNT - 2)];
+	return RANDOMWALK_OK;
+}
+
 static randomwalk_result_t init_particles(
 	particle_t** particle,
 	const uint8_t particle_count,
@@ -329,8 +358,12 @@ static randomwalk_result_t steer_particles(
 	while (current) {
 		bool change_dir = gen_uint8(1, 100) <=
 			(prob_dir_change ? prob_dir_change : DEFAULT_PROB_DIR_CHANGE);
-		if (change_dir)
-			current->direction = gen_direction();
+		if (change_dir) {
+			randomwalk_result_t result =
+				gen_direction_except(&current->direction, current->direction);
+			if (result != RANDOMWALK_OK)
+				return result;
+		}
 		current = current->next;
 	}
 	return RANDOMWALK_OK;
