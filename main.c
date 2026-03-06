@@ -20,7 +20,9 @@ static const char* USAGE =
 	"[R] --height=<uint8>          height of the plane\n"
 	"[R] --pcount=<uint8>          initial particle count\n"
 	"[O] --prob-dir-change={0-100} probability a particle changes direction\n"
-	"[O] --delay=<uint16>          delay between frames in milliseconds";
+	"[O] --delay=<uint16>          delay between frames in milliseconds\n"
+	"[O] --wrap                    particles return to opposite edge when\n"
+	"                              leaving the current edge";
 
 /**
  * @brief Move a string pointer forward passed a specified prefix.
@@ -126,6 +128,8 @@ static bool parse_arg(randomwalk_args_t* const args, char* arg) {
 		return parse_uint8(arg, &args->prob_dir_change);
 	if (!args->delay_ms && skip_prefix(&arg, "--delay="))
 		return parse_uint16(arg, &args->delay_ms);
+	if (!args->wrap && !strcmp(arg, "--wrap"))
+		args->wrap = true;
 	return true;
 }
 

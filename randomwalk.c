@@ -148,12 +148,14 @@ static randomwalk_result_t init_particles(
  * @param[in,out] particle The first particle to walk.
  * @param[in] width The width of the plane
  * @param[in] height The height of the plane
+ * @param[in] wrap Whether to return particles to the opposite edge of egress.
  * @return The result of the particles taking a walk.
  */
 static randomwalk_result_t walk_particles(
 	particle_t* const particle,
 	const uint8_t width,
-	const uint8_t height
+	const uint8_t height,
+	const bool wrap
 );
 
 /**
@@ -196,13 +198,15 @@ static randomwalk_result_t validate_particles(particle_t** particle);
  * @param[in] width The width of the plane.
  * @param[in] height The height of the plane.
  * @param[in] prob_dir_change The probability of a particle changing direction.
+ * @param[in] wrap Whether to return particles to the opposite edge of egress.
  * @return The result of computing all particles.
  */
 static randomwalk_result_t compute_particles(
 	particle_t** particle,
 	const uint8_t width,
 	const uint8_t height,
-	const uint8_t prob_dir_change
+	const uint8_t prob_dir_change,
+	const bool wrap
 );
 
 /**
@@ -230,7 +234,7 @@ randomwalk_result_t randomwalk(randomwalk_args_t args) {
 	result = init_particles(&particle, args.particle_count, args.width, args.height);
 	clear_screen();
 	while (result == RANDOMWALK_OK) {
-		result = compute_particles(&particle, args.width, args.height, args.prob_dir_change);
+		result = compute_particles(&particle, args.width, args.height, args.prob_dir_change, args.wrap);
 		millisleep(args.delay_ms);
 	}
 	if (result != RANDOMWALK_DONE)
@@ -326,7 +330,8 @@ static randomwalk_result_t init_particles(
 static randomwalk_result_t walk_particles(
 	particle_t* const particle,
 	const uint8_t width,
-	const uint8_t height
+	const uint8_t height,
+	const bool wrap
 ) {
 	if (!particle || !width || !height)
 		return RANDOMWALK_FAIL;
@@ -337,7 +342,10 @@ static randomwalk_result_t walk_particles(
 	while (current) {
 		const int16_t new_x = current->coord.x + delta_x[current->direction];
 		const int16_t new_y = current->coord.y + delta_y[current->direction];
-		if (new_x < 0 || new_y < 0 || new_x == width || new_y == height) {
+		if (wrap) {
+			current->coord.x = (uint8_t)(new_x > 0 ? new_x == width ? 0 : new_x : width - 1);
+			current->coord.y = (uint8_t)(new_y > 0 ? new_y == height ? 0 : new_y : height - 1);
+		} else if (new_x < 0 || new_y < 0 || new_x == width || new_y == height) {
 			current->is_alive = false;
 		} else {
 			current->coord.x = (uint8_t)new_x;
@@ -415,7 +423,8 @@ static randomwalk_result_t compute_particles(
 	particle_t** particle,
 	const uint8_t width,
 	const uint8_t height,
-	const uint8_t prob_dir_change
+	const uint8_t prob_dir_change,
+	const bool wrap
 ) {
 	randomwalk_result_t result = draw_particles(*particle);
 	if (result != RANDOMWALK_OK)
@@ -423,7 +432,7 @@ static randomwalk_result_t compute_particles(
 	result = steer_particles(*particle, prob_dir_change);
 	if (result != RANDOMWALK_OK)
 		return result;
-	result = walk_particles(*particle, width, height);
+	result = walk_particles(*particle, width, height, wrap);
 	if (result != RANDOMWALK_OK)
 		return result;
 	return validate_particles(particle);

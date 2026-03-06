@@ -8,6 +8,7 @@
 #ifndef RANDOMWALK_H
 #define RANDOMWALK_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 /**
@@ -18,6 +19,7 @@ typedef struct {
 	uint8_t particle_count;
 	uint8_t prob_dir_change;
 	uint16_t delay_ms;
+	bool wrap;
 } randomwalk_args_t;
 
 /**
